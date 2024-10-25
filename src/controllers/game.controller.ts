@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
 import { Game } from '../entities/game.entity';
 import { GameService } from '../services/game.service';
 
@@ -14,6 +14,16 @@ export class GameController {
   @Post()
   async addGame(@Body() gameData: Game): Promise<Game> {
     return this.gameService.createGame(gameData);
+  }
+
+  @Get(":id")
+  async getPlayerById(@Param("id") id: number): Promise<Game> {
+    return this.gameService.findById(id);
+  }
+
+  @Delete(":id")
+  async deletePlayerById(@Param("id") id: number): Promise<void> {
+    await this.gameService.deleteById(id);
   }
 
   @Get("/test")

@@ -29,4 +29,12 @@ export class GameService {
     });
     return this.gameRepository.save(game);
   }
+
+  async findById(id: number): Promise<Game> {
+    return this.gameRepository.findOneBy({ id: id });
+  }
+
+  async deleteById(id: number): Promise<void> {
+    await this.gameRepository.delete({ id: id });
+  }
 }
