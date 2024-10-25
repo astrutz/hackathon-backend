@@ -1,6 +1,6 @@
 import { Column, Entity, JoinTable, ManyToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { Game } from './game.entity';
-import { Score } from './score.entity';
+import { Score } from './score.interface';
 
 @Entity()
 export class Player {
@@ -23,6 +23,6 @@ export class Player {
   @JoinTable()
   games: Game[];
 
-  @Column()
+  @Column("json")
   scores: Score;
 }
