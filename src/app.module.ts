@@ -4,6 +4,7 @@ import { GameService } from './game.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Game } from './entities/game.entity';
+import { Player } from './entities/player.entity';
 
 @Module({
   imports: [
@@ -15,16 +16,17 @@ import { Game } from './entities/game.entity';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         type: 'postgres',
-        host: configService.get<string>('DB_HOST', 'localhost'),
-        port: configService.get<number>('DB_PORT', 5432),
-        username: configService.get<string>('DB_USERNAME', 'kickathon'),
-        password: configService.get<string>('DB_PASSWORD', 'kickathon'),
-        database: configService.get<string>('DB_NAME', 'kickathon'),
-        entities: [Game], // Add Game entity here
-        synchronize: true, // Don't use true in production!
+        host: configService.get<string>('DB_HOST'),
+        port: configService.get<number>('DB_PORT'),
+        username: configService.get<string>('DB_USERNAME'),
+        password: configService.get<string>('DB_PASSWORD'),
+        database: configService.get<string>('DB_NAME'),
+        entities: [Game, Player],
+        synchronize: true, // Don't use true in production!+
+        ssl: { rejectUnauthorized: false }, // or `ssl: true` for basic SSL
       }),
     }),
-    TypeOrmModule.forFeature([Game]), // Register Game in TypeOrmModule
+    TypeOrmModule.forFeature([Game, Player]),
   ],
   controllers: [AppController],
   providers: [GameService],

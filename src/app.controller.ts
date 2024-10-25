@@ -7,7 +7,7 @@ export class AppController {
 
   @Get()
   getHello(): string {
-    this.gameService.createGame({name: "test"});
+    this.gameService.createGame({scoreTeam1: 1, scoreTeam2: 20});
     return "huhu";
   }
 }

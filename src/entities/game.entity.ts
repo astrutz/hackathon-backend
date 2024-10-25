@@ -1,4 +1,4 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinTable, ManyToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { Player } from './player.entity';
 
 @Entity()
@@ -10,10 +10,12 @@ export class Game {
   @Column()
   timestamp: Date;
 
-  @Column()
+  @ManyToMany(() => Player)
+  @JoinTable()
   team1Players: Player[];
 
-  @Column()
+  @ManyToMany(() => Player)
+  @JoinTable()
   team2Players: Player[];
 
   @Column()
