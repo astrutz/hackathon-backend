@@ -1,13 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Game } from './entities/game.entity';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
+import { Player } from './entities/player.entity';
 
 @Injectable()
 export class GameService {
   constructor(
     @InjectRepository(Game)
     private gameRepository: Repository<Game>,
+
+    @InjectRepository(Player)
+    private playerRepository: Repository<Player>,
   ) {}
 
   async findAll(): Promise<Game[]> {
@@ -15,7 +19,14 @@ export class GameService {
   }
 
   async createGame(gameData: Partial<Game>): Promise<Game> {
-    const game = await this.gameRepository.create(gameData);
+    const team1Players = await this.playerRepository.findBy({ id: In(gameData.team1Players) });
+    const team2Players = await this.playerRepository.findBy({ id: In(gameData.team2Players) });
+
+    const game = this.gameRepository.create({
+      ...gameData,
+      team1Players,
+      team2Players,
+    });
     return this.gameRepository.save(game);
   }
 }
