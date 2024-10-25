@@ -1,5 +1,6 @@
 import { Column, Entity, JoinTable, ManyToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { Game } from './game.entity';
+import { Score } from './score.entity';
 
 @Entity()
 export class Player {
@@ -23,9 +24,5 @@ export class Player {
   games: Game[];
 
   @Column()
-  scores:{
-      elo: number;
-      glicko: number;
-      billo: number
-      }
+  scores: Score;
 }
