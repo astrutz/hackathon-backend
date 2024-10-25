@@ -10,19 +10,19 @@ export class Player {
   @Column()
   name: string;
 
-  @Column()
-  alias: string;
-
-  @Column()
+  @Column({
+      nullable: true,})
   won: number;
 
-  @Column()
+  @Column({
+      nullable: true,})
   lost: number;
 
-  @ManyToMany(() => Game)
+  @ManyToMany((nullable: true) => Game)
   @JoinTable()
   games: Game[];
 
-  @Column("json")
+  @Column("json", {
+      nullable: true,})
   scores: Score;
 }
