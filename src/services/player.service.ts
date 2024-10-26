@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Game } from '../entities/game.entity';
-import { In, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Player } from '../entities/player.entity';
 
 @Injectable()
@@ -11,10 +10,19 @@ export class PlayerService {
     private playerRepository: Repository<Player>,
   ) {}
 
-  async findAll(): Promise<Player[]> {
-    return this.playerRepository.find({
-      relations: ["games"]
+  async findAll(): Promise<any[]> {
+    const players = await this.playerRepository.find({
+      relations: ['gamesInTeam1', 'gamesInTeam2'],
     });
+
+    return players.map(player => ({
+      id: player.id,
+      name: player.name,
+      won: player.won,
+      lost: player.lost,
+      scores: player.scores,
+      games: player.games,  // Include the computed games property
+    }));
   }
 
   async createPlayer(playerData: Partial<Player>): Promise<Player> {

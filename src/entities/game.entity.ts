@@ -1,21 +1,18 @@
-import { Column, Entity, JoinTable, ManyToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToMany } from 'typeorm';
 import { Player } from './player.entity';
 
 @Entity()
 export class Game {
-
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column()
   timestamp: Date;
 
-  @ManyToMany(() => Player)
-  @JoinTable()
+  @ManyToMany(() => Player, (player) => player.gamesInTeam1, { nullable: true })
   team1Players: Player[];
 
-  @ManyToMany(() => Player)
-  @JoinTable()
+  @ManyToMany(() => Player, (player) => player.gamesInTeam2, { nullable: true })
   team2Players: Player[];
 
   @Column()

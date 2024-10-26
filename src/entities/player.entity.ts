@@ -10,19 +10,24 @@ export class Player {
   @Column()
   name: string;
 
-  @Column({
-      nullable: true,})
+  @Column({ nullable: true })
   won: number;
 
-  @Column({
-      nullable: true,})
+  @Column({ nullable: true })
   lost: number;
 
-  @ManyToMany((nullable: true) => Game)
+  @ManyToMany(() => Game, (game) => game.team1Players, { nullable: true })
   @JoinTable()
-  games: Game[];
+  gamesInTeam1: Game[];
 
-  @Column("json", {
-      nullable: true,})
+  @ManyToMany(() => Game, (game) => game.team2Players, { nullable: true })
+  @JoinTable()
+  gamesInTeam2: Game[];
+
+  get games(): Game[] {
+    return [...this.gamesInTeam1, ...this.gamesInTeam2];
+  }
+
+  @Column("json", { nullable: true })
   scores: Score;
 }
