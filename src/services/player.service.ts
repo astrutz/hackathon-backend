@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Player } from '../entities/player.entity';
@@ -16,7 +16,9 @@ export class PlayerService {
         relations: ['gamesInTeam1', 'gamesInTeam2', 'gamesInTeam1.team1Players', 'gamesInTeam1.team2Players', 'gamesInTeam2.team1Players', 'gamesInTeam2.team2Players'],
       });
 
-      return players.map(player => ({
+      return players
+        .sort((a, b) =>(a.scores.billo - b.scores.billo))
+        .map(player => ({
         id: player.id,
         name: player.name,
         won: player.won,
@@ -38,7 +40,23 @@ export class PlayerService {
   }
 
   async createPlayer(playerData: Partial<Player>): Promise<Player> {
-        const player = this.playerRepository.create(playerData);
+    // Validierung 1: Überprüfen, ob Name befüllt ist
+    if (!playerData.name || playerData.name.trim() === '') {
+      throw new BadRequestException('Player name is required');
+    }
+
+    // Validierung 2: Überprüfen, ob der Name bereits in der Datenbank existiert
+    const existingPlayer = await this.playerRepository.findOne({
+      where: { name: playerData.name.trim() }, // Trimme den Namen zur Sicherstellung
+    });
+    if (existingPlayer) {
+      throw new BadRequestException('Player with this name already exists');
+    }
+
+    playerData.scores = {elo: 1000, glicko: 1500, billo: 0};
+
+
+    const player = this.playerRepository.create(playerData);
     return this.playerRepository.save(player);
   }
 
