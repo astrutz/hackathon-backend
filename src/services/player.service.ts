@@ -46,23 +46,10 @@ export class PlayerService {
     }
   }
 
-  async createPlayer(playerData: Partial<Player>): Promise<Player> {
-    // Validierung 1: Überprüfen, ob Name befüllt ist
-    if (!playerData.name || playerData.name.trim() === '') {
-      throw new BadRequestException('Player name is required');
-    }
-
-    // Validierung 2: Überprüfen, ob der Name bereits in der Datenbank existiert
-    const existingPlayer = await this.playerRepository.findOne({
-      where: { name: playerData.name.trim() }, // Trimme den Namen zur Sicherstellung
-    });
-    if (existingPlayer) {
-      throw new BadRequestException('Player with this name already exists');
-    }
-
-    playerData.scores = { elo: 1000, glicko: 1500, billo: 0 };
-    playerData.won = 0;
-    playerData.lost = 0;
+  async createPlayer(name: string, hash: string): Promise<Player> {
+    const playerData: Partial<Player> = new Player()
+    playerData.name = name;
+    playerData.password = hash;
 
     const player = this.playerRepository.create(playerData);
     return this.playerRepository.save(player);
@@ -75,4 +62,13 @@ export class PlayerService {
   async deleteById(id: number): Promise<void> {
     await this.playerRepository.delete({ id: id });
   }
+
+  async existPlayerByName(name: string): Promise<Boolean> {
+    return await this.playerRepository.existsBy({ name: name });
+  }
+
+  async findByName(name: string): Promise<Player> {
+    return this.playerRepository.findOneBy({ name: name });
+  }
+
 }
