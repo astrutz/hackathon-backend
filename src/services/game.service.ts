@@ -39,7 +39,7 @@ export class GameService {
     }));
   }
 
-  calcPointsBillo(team1Players: Player[], team2Players: Player[], gameData: Partial<Game>): void {
+  updatePointsBillo(team1Players: Player[], team2Players: Player[], gameData: Partial<Game>): void {
     const WIN_POINTS_BILLO: number = 10;
     const LOST_POINTS_BILLO: number = -5;
     const TIED_POINTS_BILLO: number = 2;
@@ -56,6 +56,9 @@ export class GameService {
     } else {
       [...team1Players, ...team2Players].forEach(player => player.scores.billo += TIED_POINTS_BILLO);
     }
+
+    // persist
+    [...team1Players, ...team2Players].forEach(player => this.playerRepository.save(player))
   }
 
   async createGame(gameData: Partial<Game>): Promise<Game> {
@@ -69,7 +72,7 @@ export class GameService {
       throw new BadRequestException('players must be disjunct');
     }
 
-    this.calcPointsBillo(team1Players, team2Players, gameData);
+    this.updatePointsBillo(team1Players, team2Players, gameData);
 
     const game = this.gameRepository.create({
       ...gameData,
