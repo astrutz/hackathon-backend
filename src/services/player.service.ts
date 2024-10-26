@@ -54,7 +54,8 @@ export class PlayerService {
     }
 
     playerData.scores = {elo: 1000, glicko: 1500, billo: 0};
-
+    playerData.won = 0;
+    playerData.lost = 0;
 
     const player = this.playerRepository.create(playerData);
     return this.playerRepository.save(player);
