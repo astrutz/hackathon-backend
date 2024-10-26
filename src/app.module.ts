@@ -10,12 +10,17 @@ import { PlayerController } from './controllers/player.controller';
 import { GameController } from './controllers/game.controller';
 import { AuthController } from './controllers/auth.controller';
 import { AuthService } from './services/auth.service';
-import { JwtService } from '@nestjs/jwt';
+import { JwtModule, JwtService } from '@nestjs/jwt';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true, // This makes the config globally accessible
+    }),
+    JwtModule.register({
+      global: true,
+      signOptions: { expiresIn: '86400s' },
+      secret: process.env.JWT_TOKEN
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -37,6 +42,7 @@ import { JwtService } from '@nestjs/jwt';
     TypeOrmModule.forFeature([Game, Player]),
   ],
   controllers: [AppController, GameController, PlayerController, AuthController],
-  providers: [GameService, PlayerService, AuthService, JwtService],
+  providers: [GameService, PlayerService, AuthService],
 })
-export class AppModule {}
+export class AppModule {
+}
