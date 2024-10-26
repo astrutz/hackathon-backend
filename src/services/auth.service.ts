@@ -36,7 +36,7 @@ export class AuthService {
       throw new BadRequestException('Player with this name exists already');
     }
 
-    if (!registerRequest.name || registerRequest.name.trim() === '') {
+    if (!registerRequest.name || registerRequest.name.trim().length === 0) {
       throw new BadRequestException('Name cannot be empty');
     }
 

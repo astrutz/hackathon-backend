@@ -1,4 +1,15 @@
-import { Body, Controller, Delete, Get, Param, Patch, Query, UploadedFile, UseInterceptors } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Query,
+  UploadedFile,
+  UseInterceptors,
+} from '@nestjs/common';
 import { Player } from '../entities/player.entity';
 import { PlayerService } from '../services/player.service';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -28,14 +39,22 @@ export class PlayerController {
     await this.playerService.deleteById(id);
   }
 
-  @Patch("/:id")
+  @Patch("/:id/image")
   @UseInterceptors(FileInterceptor('image')) // Use interceptor to handle the file upload
-  patchPlayerById(@Param('id') id: number,
-                  @Body() formData: { name: string },
-                  @UploadedFile() image: Express.Multer.File): any {
-    const { name } = formData;
-
-    this.playerService.updateName(id, name);
+  async patchPlayerImage(@Param('id') id: number,
+                  @UploadedFile() image: Express.Multer.File): Promise<void> {
     this.playerService.updateImage(id, image);
+  }
+
+  @Patch("/:id/name")
+  async patchPlayerName(@Param('id') id: number,
+                  @Body() patchData: { name: string }): Promise<void> {
+    const { name } = patchData;
+    if (await this.playerService.existPlayerByName(name.trim())) {
+      throw new BadRequestException('Player with this name exists already');
+    } else if (!name || name.trim().length === 0) {
+      throw new BadRequestException('Name cannot be empty');
+    }
+    this.playerService.updateName(id, name);
   }
 }
