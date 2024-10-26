@@ -8,7 +8,8 @@ export class PlayerService {
   constructor(
     @InjectRepository(Player)
     private playerRepository: Repository<Player>,
-  ) {}
+  ) {
+  }
 
   async findAll(): Promise<any[]> {
     try {
@@ -17,22 +18,22 @@ export class PlayerService {
       });
 
       return players
-        .sort((a, b) =>(a.scores.billo - b.scores.billo))
+        .sort((a, b) => (a.scores.billo - b.scores.billo))
         .map(player => ({
-        id: player.id,
-        name: player.name,
-        won: player.won,
-        lost: player.lost,
-        scores: player.scores,
-        games: player.games.map(game => ({
-          id: game.id,
-          timestamp: game.timestamp,
-          scoreTeam1: game.scoreTeam1,
-          scoreTeam2: game.scoreTeam2,
-          team1Players: game.team1Players.map(p => p.id), // Only include IDs
-          team2Players: game.team2Players.map(p => p.id), // Only include IDs
-        })),
-      }));
+          id: player.id,
+          name: player.name,
+          won: player.won,
+          lost: player.lost,
+          scores: player.scores,
+          games: player.games.map(game => ({
+            id: game.id,
+            timestamp: game.timestamp,
+            scoreTeam1: game.scoreTeam1,
+            scoreTeam2: game.scoreTeam2,
+            team1Players: game.team1Players.map(p => p.id), // Only include IDs
+            team2Players: game.team2Players.map(p => p.id), // Only include IDs
+          })),
+        }));
     } catch (error) {
       console.error('Error fetching players:', error);
       throw error; // Or handle it appropriately
@@ -53,7 +54,7 @@ export class PlayerService {
       throw new BadRequestException('Player with this name already exists');
     }
 
-    playerData.scores = {elo: 1000, glicko: 1500, billo: 0};
+    playerData.scores = { elo: 1000, glicko: 1500, billo: 0 };
     playerData.won = 0;
     playerData.lost = 0;
 
