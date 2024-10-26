@@ -13,6 +13,7 @@ import { TasksService } from './services/tasks.service';
 import { AuthController } from './controllers/auth.controller';
 import { AuthService } from './services/auth.service';
 import { JwtService } from '@nestjs/jwt';
+import { TasksController } from './controllers/tasks.controller';
 
 @Module({
   imports: [
@@ -39,7 +40,7 @@ import { JwtService } from '@nestjs/jwt';
     }),
     TypeOrmModule.forFeature([Game, Player]),
   ],
-  controllers: [AppController, GameController, PlayerController, AuthController],
+  controllers: [AppController, GameController, PlayerController, AuthController, TasksController],
   providers: [GameService, PlayerService, AuthService, JwtService, TasksService],
 })
 export class AppModule {
