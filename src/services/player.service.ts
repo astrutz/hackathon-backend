@@ -18,7 +18,7 @@ export class PlayerService {
       });
 
       return players
-        .sort((a, b) => (a.scores.billo - b.scores.billo))
+        .sort((a, b) => (b.scores.billo - a.scores.billo))
         .map(player => ({
           id: player.id,
           name: player.name,
