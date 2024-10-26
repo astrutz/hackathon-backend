@@ -4,7 +4,7 @@ import { AuthService } from '../services/auth.service';
 import { RegisterRequest } from '../entities/register.interface';
 
 @Controller('/auth')
-export class PlayerController {
+export class AuthController {
   constructor(private readonly authService: AuthService) {
   }
 

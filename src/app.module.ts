@@ -8,6 +8,9 @@ import { Game } from './entities/game.entity';
 import { Player } from './entities/player.entity';
 import { PlayerController } from './controllers/player.controller';
 import { GameController } from './controllers/game.controller';
+import { AuthController } from './controllers/auth.controller';
+import { AuthService } from './services/auth.service';
+import { JwtService } from '@nestjs/jwt';
 
 @Module({
   imports: [
@@ -33,7 +36,7 @@ import { GameController } from './controllers/game.controller';
     }),
     TypeOrmModule.forFeature([Game, Player]),
   ],
-  controllers: [AppController, GameController, PlayerController],
-  providers: [GameService, PlayerService],
+  controllers: [AppController, GameController, PlayerController, AuthController],
+  providers: [GameService, PlayerService, AuthService, JwtService],
 })
 export class AppModule {}
