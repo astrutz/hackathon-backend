@@ -113,7 +113,7 @@ export class PlayerService {
     return Math.ceil(((tempDate.getTime() - startOfYear.getTime()) / 86400000 + 1) / 7);
   }
 
-  async updateImage(id: number, image: Express.Multer.File): Promise<void> {
+  async updateImage(id: number, image: Express.Multer.File): Promise<string> {
     const formData = new FormData();
     formData.append('key', process.env.THUMBSNAP_API_KEY); // API key
     formData.append('media', image.buffer as any, image.originalname);
@@ -130,7 +130,8 @@ export class PlayerService {
     if (response.data && response.data.success) {
       const player = await this.playerRepository.findOneBy({ id: id });
       player.imageUrl = response.data.data.thumb;
-      this.playerRepository.save(player);
+      await this.playerRepository.save(player);
+      return player.imageUrl;
     } else {
       throw new HttpException(
         'Image upload failed',

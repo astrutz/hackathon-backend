@@ -42,8 +42,8 @@ export class PlayerController {
   @Patch("/:id/image")
   @UseInterceptors(FileInterceptor('image')) // Use interceptor to handle the file upload
   async patchPlayerImage(@Param('id') id: number,
-                  @UploadedFile() image: Express.Multer.File): Promise<void> {
-    this.playerService.updateImage(id, image);
+                  @UploadedFile() image: Express.Multer.File): Promise<string> {
+    return await this.playerService.updateImage(id, image);
   }
 
   @Patch("/:id/name")
