@@ -4,16 +4,16 @@ import { AuthService } from '../services/auth.service';
 import { RegisterRequest } from '../entities/register.interface';
 
 @Controller('/auth')
-export class PlayerController {
+export class AuthController {
   constructor(private readonly authService: AuthService) {
   }
 
-  @Post()
+  @Post('/login')
   async login(@Body() loginRequest: LoginRequest): Promise<string> {
     return await this.authService.loginUser(loginRequest);
   }
 
-  @Post()
+  @Post('/register')
   async register(@Body() registerRequest: RegisterRequest): Promise<string> {
     return await this.authService.registerUser(registerRequest);
   }
