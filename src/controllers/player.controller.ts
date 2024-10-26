@@ -11,12 +11,7 @@ export class PlayerController {
     async getAll(@Query('sort') sort?: string): Promise<any[]> {
         return this.playerService.findAll(sort);
     }
-
-    @Post()
-    async addPlayer(@Body() playerData: Player): Promise<Player> {
-        return this.playerService.createPlayer(playerData);
-    }
-
+    
     @Get("/:id")
     async getPlayerById(@Param("id") id: number): Promise<Player> {
         return this.playerService.findById(id);
