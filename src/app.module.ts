@@ -12,8 +12,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { TasksService } from './services/tasks.service';
 import { AuthController } from './controllers/auth.controller';
 import { AuthService } from './services/auth.service';
-import { JwtModule, JwtService } from '@nestjs/jwt';
-import { JwtService } from '@nestjs/jwt';
+import { JwtModule } from '@nestjs/jwt';
 import { TasksController } from './controllers/tasks.controller';
 
 @Module({
