@@ -7,14 +7,17 @@ export class Player {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Column({nullable: true})
+  password: string;
+
   @Column()
   name: string;
 
   @Column({ nullable: true })
-  won: number;
+  won: number = 0;
 
   @Column({ nullable: true })
-  lost: number;
+  lost: number = 0;
 
   @ManyToMany(() => Game, (game) => game.team1Players, { nullable: true })
   @JoinTable()
@@ -29,5 +32,5 @@ export class Player {
   }
 
   @Column("json", { nullable: true })
-  scores: Score;
+  scores: Score = { elo: 1000, glicko: 1500, billo: 0 };
 }

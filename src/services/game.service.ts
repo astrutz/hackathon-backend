@@ -15,9 +15,9 @@ interface EloScoreInput {
 export class GameService {
   constructor(
     @InjectRepository(Game)
-    private gameRepository: Repository<Game>,
+    private readonly gameRepository: Repository<Game>,
     @InjectRepository(Player)
-    private playerRepository: Repository<Player>,
+    private readonly playerRepository: Repository<Player>,
   ) {}
 
   async findAll(): Promise<GameResponse[]> {
