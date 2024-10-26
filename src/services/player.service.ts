@@ -39,6 +39,7 @@ export class PlayerService {
         won: player.won,
         lost: player.lost,
         scores: player.scores,
+        imageUrl: player.imageUrl,
         games: player.games.map(game => ({
           id: game.id,
           timestamp: game.timestamp,
