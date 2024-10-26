@@ -64,8 +64,8 @@ export class PlayerService {
     await this.playerRepository.delete({ id: id });
   }
 
-  async getPlayerScoreHistoryByWeek(playerId: number): Promise<any> {
-
+  async getPlayerScoreHistory(playerId: number): Promise<any> {
+    return (await this.playerRepository.findOneBy({ id: playerId })).scoreHistory;
   }
 
 

@@ -1,5 +1,5 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { Cron, Interval } from '@nestjs/schedule';
+import { Injectable } from '@nestjs/common';
+import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Player } from '../entities/player.entity';
 import { Repository } from 'typeorm';
@@ -46,21 +46,19 @@ export class TasksService {
   }
 
   private getWeekNumber(date: Date): number {
-    // Set the start of the week as Monday and clone the date to avoid mutations
-    const target = new Date(date.valueOf());
-    target.setHours(0, 0, 0, 0);
+    const tempDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const dayNum = (tempDate.getDay() + 6) % 7; // Adjust so that Monday is day 0 and Sunday is day 6
 
-    // Find the Thursday in the current week to get consistent results
-    target.setDate(target.getDate() + 3 - ((target.getDay() + 6) % 7));
+    // Set tempDate to the nearest Thursday to determine the first week of the year
+    tempDate.setDate(tempDate.getDate() - dayNum + 3);
 
-    // January 4th is always in the first week of the ISO calendar year
-    const firstThursday = new Date(target.getFullYear(), 0, 4);
+    // Calculate the first Thursday of the year
+    const firstThursday = new Date(tempDate.getFullYear(), 0, 4);
+    const firstWeekStart = firstThursday.getDate() - ((firstThursday.getDay() + 6) % 7) + 3;
 
-    // Calculate the number of weeks between the target date and the first Thursday
-    const diff = target.getTime() - firstThursday.getTime();
-    const oneWeek = 7 * 24 * 60 * 60 * 1000; // milliseconds in a week
+    const startOfYear = new Date(tempDate.getFullYear(), 0, firstWeekStart);
 
-    // Calculate the calendar week number
-    return 1 + Math.floor(diff / oneWeek);
+    // Calculate week number
+    return Math.ceil(((tempDate.getTime() - startOfYear.getTime()) / 86400000 + 1) / 7);
   }
 }

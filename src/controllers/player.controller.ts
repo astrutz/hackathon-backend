@@ -19,7 +19,7 @@ export class PlayerController {
 
   @Get('/:id/history')
   getPlayerHistory(@Param('id') id: number): any {
-    return this.playerService.getPlayerScoreHistoryByWeek(id);
+    return this.playerService.getPlayerScoreHistory(id);
   }
 
   @Delete(':id')
