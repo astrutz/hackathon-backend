@@ -16,8 +16,8 @@ export class AuthService {
   ) {
   }
 
-  async loginUser(loginRequest: LoginRequest): Promise<string> {
-    return this.playerService.findByName(loginRequest.name).then((player: Player) => {
+  async loginUser(loginRequest: LoginRequest): Promise<{ jwt: string, id: number }> {
+    return this.playerService.findByName(loginRequest.name).then(async (player: Player) => {
       if (!player) {
         throw new NotFoundError('No Player found by name=' + loginRequest.name);
       }
@@ -27,11 +27,15 @@ export class AuthService {
         throw new BadRequestException('Password not valid');
       }
 
-      return this.jwtService.signAsync({ sub: player.name });
+      let token = await this.jwtService.signAsync({ sub: player.name });
+      return {
+        jwt: token,
+        id: player.id,
+      };
     });
   }
 
-  async registerUser(registerRequest: RegisterRequest): Promise<string> {
+  async registerUser(registerRequest: RegisterRequest): Promise<{ jwt: string, id: number }> {
     if (await this.playerService.existPlayerByName(registerRequest.name.trim())) {
       throw new BadRequestException('Player with this name exists already');
     }
@@ -45,8 +49,13 @@ export class AuthService {
     }
 
     let hash = bcrypt.hashSync(registerRequest.password, 10);
-    return await this.playerService.createPlayer(registerRequest.name, hash).then((player) => {
-      return this.jwtService.signAsync({ sub: registerRequest.name });
+
+    return await this.playerService.createPlayer(registerRequest.name, hash).then(async (player) => {
+      let token = await this.jwtService.signAsync({ sub: player.name });
+      return {
+        jwt: token,
+        id: player.id,
+      };
     });
   }
 }

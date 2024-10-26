@@ -9,12 +9,12 @@ export class AuthController {
   }
 
   @Post('/login')
-  async login(@Body() loginRequest: LoginRequest): Promise<string> {
+  async login(@Body() loginRequest: LoginRequest): Promise<{ jwt: string, id: number }> {
     return await this.authService.loginUser(loginRequest);
   }
 
   @Post('/register')
-  async register(@Body() registerRequest: RegisterRequest): Promise<string> {
+  async register(@Body() registerRequest: RegisterRequest): Promise<{ jwt: string, id: number }> {
     return await this.authService.registerUser(registerRequest);
   }
 
