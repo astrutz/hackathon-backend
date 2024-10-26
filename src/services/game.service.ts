@@ -42,7 +42,7 @@ export class GameService {
     }));
   }
 
-  updatePointsBillo(team1Players: Player[], team2Players: Player[], gameData: Partial<Game>): void {
+  calculatePointsBillo(team1Players: Player[], team2Players: Player[], gameData: Partial<Game>): void {
     const WIN_POINTS_BILLO: number = 10;
     const LOST_POINTS_BILLO: number = -5;
     const TIED_POINTS_BILLO: number = 2;
@@ -59,8 +59,6 @@ export class GameService {
     } else {
       [...team1Players, ...team2Players].forEach(player => player.scores.billo += TIED_POINTS_BILLO);
     }
-
-    [...team1Players, ...team2Players].forEach(player => this.playerRepository.save(player));
   }
 
   calculateElo(scores: EloScoreInput, kFactor: number = 32): { playerId: number; newElo: number }[] {
@@ -98,7 +96,7 @@ export class GameService {
       throw new BadRequestException('players must be disjunct');
     }
 
-    this.updatePointsBillo(team1Players, team2Players, gameData);
+    this.calculatePointsBillo(team1Players, team2Players, gameData);
 
     const team1Won = gameData.scoreTeam1 > gameData.scoreTeam2;
     const eloInput = {
@@ -112,10 +110,10 @@ export class GameService {
       const player = [...team1Players, ...team2Players].find(p => p.id === playerId);
       if (player) {
         player.scores.elo = newElo;
-        this.playerRepository.save(player);
       }
     });
 
+    [...team1Players, ...team2Players].forEach(player => this.playerRepository.save(player));
     const game = this.gameRepository.create({
       ...gameData,
       team1Players,
