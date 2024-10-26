@@ -5,6 +5,11 @@ import { Between, In, Repository } from 'typeorm';
 import { Player } from '../entities/player.entity';
 import { GameResponse } from '../entities/game.response.interface';
 
+interface EloScoreInput {
+  team1: { playerId: number; elo: number }[];
+  team2: { playerId: number; elo: number }[];
+  team1Won: boolean;
+}
 
 @Injectable()
 export class GameService {
@@ -13,8 +18,7 @@ export class GameService {
     private gameRepository: Repository<Game>,
     @InjectRepository(Player)
     private playerRepository: Repository<Player>,
-  ) {
-  }
+  ) {}
 
   async findAll(): Promise<GameResponse[]> {
     const games = await this.gameRepository
@@ -31,7 +35,6 @@ export class GameService {
       ])
       .getMany();
 
-    // Transforming the response to map team player arrays to IDs only
     return games.map(game => ({
       ...game,
       team1Players: game.team1Players.map(player => player.id),
@@ -57,15 +60,38 @@ export class GameService {
       [...team1Players, ...team2Players].forEach(player => player.scores.billo += TIED_POINTS_BILLO);
     }
 
-    // persist
-    [...team1Players, ...team2Players].forEach(player => this.playerRepository.save(player))
+    [...team1Players, ...team2Players].forEach(player => this.playerRepository.save(player));
+  }
+
+  calculateElo(scores: EloScoreInput, kFactor: number = 32): { playerId: number; newElo: number }[] {
+    const { team1, team2, team1Won } = scores;
+
+    const averageEloTeam1 = team1.reduce((sum, player) => sum + player.elo, 0) / team1.length;
+    const averageEloTeam2 = team2.reduce((sum, player) => sum + player.elo, 0) / team2.length;
+
+    const expectedScoreTeam1 = 1 / (1 + Math.pow(10, (averageEloTeam2 - averageEloTeam1) / 400));
+    const expectedScoreTeam2 = 1 - expectedScoreTeam1;
+
+    const actualScoreTeam1 = team1Won ? 1 : 0;
+    const actualScoreTeam2 = 1 - actualScoreTeam1;
+
+    const updatedTeam1 = team1.map(player => {
+      const newElo = player.elo + kFactor * (actualScoreTeam1 - expectedScoreTeam1);
+      return { playerId: player.playerId, newElo: Math.round(newElo) };
+    });
+
+    const updatedTeam2 = team2.map(player => {
+      const newElo = player.elo + kFactor * (actualScoreTeam2 - expectedScoreTeam2);
+      return { playerId: player.playerId, newElo: Math.round(newElo) };
+    });
+
+    return [...updatedTeam1, ...updatedTeam2];
   }
 
   async createGame(gameData: Partial<Game>): Promise<Game> {
     const team1Players = await this.playerRepository.findBy({ id: In(gameData.team1Players ?? []) }) ?? [];
     const team2Players = await this.playerRepository.findBy({ id: In(gameData.team2Players ?? []) }) ?? [];
 
-    // validation
     if (team1Players.length < 1 || team2Players.length < 1) {
       throw new BadRequestException('must enter players');
     } else if (this.haveIntersection(team1Players, team2Players)) {
@@ -74,11 +100,28 @@ export class GameService {
 
     this.updatePointsBillo(team1Players, team2Players, gameData);
 
+    const team1Won = gameData.scoreTeam1 > gameData.scoreTeam2;
+    const eloInput = {
+      team1: team1Players.map(player => ({ playerId: player.id, elo: player.scores.elo })),
+      team2: team2Players.map(player => ({ playerId: player.id, elo: player.scores.elo })),
+      team1Won,
+    };
+
+    const updatedEloScores = this.calculateElo(eloInput);
+    updatedEloScores.forEach(({ playerId, newElo }) => {
+      const player = [...team1Players, ...team2Players].find(p => p.id === playerId);
+      if (player) {
+        player.scores.elo = newElo;
+        this.playerRepository.save(player);
+      }
+    });
+
     const game = this.gameRepository.create({
       ...gameData,
       team1Players,
       team2Players,
     });
+
     return this.gameRepository.save(game);
   }
 
@@ -101,13 +144,6 @@ export class GameService {
     });
   }
 
-  /**
-   * Helper method to calculate the start date of a specific week in a year.
-   * @param year - The year.
-   * @param weeknr - The calendar week number.
-   * @param weekStartsOn - The day the week starts on, 0 for Sunday, 1 for Monday, etc. (defaults to Monday).
-   * @returns The start date of the specified week.
-   */
   private startOfWeek(year: number, weeknr: number, weekStartsOn: number = 1): Date {
     const jan1 = new Date(year, 0, 1);
     const jan1DayOfWeek = jan1.getDay();
@@ -119,13 +155,6 @@ export class GameService {
     return weekStartDate;
   }
 
-  /**
-   * Helper method to calculate the end date of a specific week in a year.
-   * @param year - The year.
-   * @param weeknr - The calendar week number.
-   * @param weekStartsOn - The day the week starts on, 0 for Sunday, 1 for Monday, etc. (defaults to Monday).
-   * @returns The end date of the specified week.
-   */
   private endOfWeek(year: number, weeknr: number, weekStartsOn: number = 1): Date {
     const weekStartDate = this.startOfWeek(year, weeknr, weekStartsOn);
     const weekEndDate = new Date(weekStartDate);
@@ -134,7 +163,7 @@ export class GameService {
     return weekEndDate;
   }
 
-  private haveIntersection(arr1, arr2) {
-    return arr1.some(element => arr2.includes(element));
+  private haveIntersection(arr1: Player[], arr2: Player[]): boolean {
+    return arr1.some(player1 => arr2.some(player2 => player1.id === player2.id));
   }
 }
