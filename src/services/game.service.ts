@@ -3,6 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Game } from '../entities/game.entity';
 import { Between, In, Repository } from 'typeorm';
 import { Player } from '../entities/player.entity';
+import { GameResponse } from '../entities/game.response.interface';
+
 
 @Injectable()
 export class GameService {
@@ -14,8 +16,27 @@ export class GameService {
     private playerRepository: Repository<Player>,
   ) {}
 
-  async findAll(): Promise<Game[]> {
-    return this.gameRepository.find();
+  async findAll(): Promise<GameResponse[]> {
+    const games = await this.gameRepository
+      .createQueryBuilder("game")
+      .leftJoinAndSelect("game.team1Players", "team1Players")
+      .leftJoinAndSelect("game.team2Players", "team2Players")
+      .select([
+        "game.id",
+        "game.timestamp",
+        "game.scoreTeam1",
+        "game.scoreTeam2",
+        "team1Players.id",
+        "team2Players.id",
+      ])
+      .getMany();
+
+    // Transforming the response to map team player arrays to IDs only
+    return games.map(game => ({
+      ...game,
+      team1Players: game.team1Players.map(player => player.id),
+      team2Players: game.team2Players.map(player => player.id),
+    }));
   }
 
   async createGame(gameData: Partial<Game>): Promise<Game> {

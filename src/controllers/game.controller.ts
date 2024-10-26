@@ -1,13 +1,14 @@
 import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
 import { Game } from '../entities/game.entity';
 import { GameService } from '../services/game.service';
+import { GameResponse } from '../entities/game.response.interface';
 
 @Controller("/games")
 export class GameController {
   constructor(private readonly gameService: GameService) {}
 
   @Get()
-  async getAll(): Promise<Game[]> {
+  async getAll(): Promise<GameResponse[]> {
     return this.gameService.findAll();
   }
 
