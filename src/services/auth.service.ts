@@ -12,40 +12,41 @@ export class AuthService {
   constructor(
     @Inject()
     private playerService: PlayerService,
-    private jwtService: JwtService
-  ) {}
+    private jwtService: JwtService,
+  ) {
+  }
 
   async loginUser(loginRequest: LoginRequest): Promise<string> {
     return this.playerService.findByName(loginRequest.name).then((player: Player) => {
       if (!player) {
-        throw new NotFoundError('No Player found by name=' + loginRequest.name)
+        throw new NotFoundError('No Player found by name=' + loginRequest.name);
       }
 
-      let validPassword: boolean = bcrypt.compareSync(loginRequest.password, player.password)
+      let validPassword: boolean = bcrypt.compareSync(loginRequest.password, player.password);
       if (!validPassword) {
-        throw new BadRequestException('Password not valid')
+        throw new BadRequestException('Password not valid');
       }
 
-      return this.jwtService.signAsync({ sub: player.name })
-    })
+      return this.jwtService.signAsync({ sub: player.name });
+    });
   }
 
   async registerUser(registerRequest: RegisterRequest): Promise<string> {
     if (await this.playerService.existPlayerByName(registerRequest.name.trim())) {
-      throw new BadRequestException('Player with this name exists already')
+      throw new BadRequestException('Player with this name exists already');
     }
 
     if (!registerRequest.name || registerRequest.name.trim() === '') {
-      throw new BadRequestException('Name cannot be empty')
+      throw new BadRequestException('Name cannot be empty');
     }
 
     if (registerRequest.password !== registerRequest.confirmPassword) {
-      throw new BadRequestException('Password and ConfirmPassword are not equal')
+      throw new BadRequestException('Password and ConfirmPassword are not equal');
     }
 
-    let hash = bcrypt.hashSync(registerRequest.password, 10)
+    let hash = bcrypt.hashSync(registerRequest.password, 10);
     return await this.playerService.createPlayer(registerRequest.name, hash).then((player) => {
-      return this.jwtService.signAsync({ sub: registerRequest.name })
-    })
+      return this.jwtService.signAsync({ sub: registerRequest.name });
+    });
   }
 }

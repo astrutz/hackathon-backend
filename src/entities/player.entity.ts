@@ -1,13 +1,14 @@
 import { Column, Entity, JoinTable, ManyToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { Game } from './game.entity';
 import { Score } from './score.interface';
+import { ScoreHistory } from './score-history.interface';
 
 @Entity()
 export class Player {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({nullable: true})
+  @Column({ nullable: true })
   password: string;
 
   @Column()
@@ -31,6 +32,9 @@ export class Player {
     return [...this.gamesInTeam1, ...this.gamesInTeam2];
   }
 
-  @Column("json", { nullable: true })
+  @Column('json', { nullable: true })
   scores: Score = { elo: 1000, glicko: 1500, billo: 0 };
+
+  @Column('json', { nullable: true })
+  scoreHistory: ScoreHistory[];
 }
