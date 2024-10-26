@@ -11,18 +11,30 @@ export class PlayerService {
   ) {}
 
   async findAll(): Promise<any[]> {
-    const players = await this.playerRepository.find({
-      relations: ['gamesInTeam1', 'gamesInTeam2'],
-    });
+    try {
+      const players = await this.playerRepository.find({
+        relations: ['gamesInTeam1', 'gamesInTeam2', 'gamesInTeam1.team1Players', 'gamesInTeam1.team2Players', 'gamesInTeam2.team1Players', 'gamesInTeam2.team2Players'],
+      });
 
-    return players.map(player => ({
-      id: player.id,
-      name: player.name,
-      won: player.won,
-      lost: player.lost,
-      scores: player.scores,
-      games: player.games,  // Include the computed games property
-    }));
+      return players.map(player => ({
+        id: player.id,
+        name: player.name,
+        won: player.won,
+        lost: player.lost,
+        scores: player.scores,
+        games: player.games.map(game => ({
+          id: game.id,
+          timestamp: game.timestamp,
+          scoreTeam1: game.scoreTeam1,
+          scoreTeam2: game.scoreTeam2,
+          team1Players: game.team1Players.map(p => p.id), // Only include IDs
+          team2Players: game.team2Players.map(p => p.id), // Only include IDs
+        })),
+      }));
+    } catch (error) {
+      console.error('Error fetching players:', error);
+      throw error; // Or handle it appropriately
+    }
   }
 
   async createPlayer(playerData: Partial<Player>): Promise<Player> {
