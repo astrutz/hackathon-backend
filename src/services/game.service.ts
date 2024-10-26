@@ -11,23 +11,23 @@ export class GameService {
   constructor(
     @InjectRepository(Game)
     private gameRepository: Repository<Game>,
-
     @InjectRepository(Player)
     private playerRepository: Repository<Player>,
-  ) {}
+  ) {
+  }
 
   async findAll(): Promise<GameResponse[]> {
     const games = await this.gameRepository
-      .createQueryBuilder("game")
-      .leftJoinAndSelect("game.team1Players", "team1Players")
-      .leftJoinAndSelect("game.team2Players", "team2Players")
+      .createQueryBuilder('game')
+      .leftJoinAndSelect('game.team1Players', 'team1Players')
+      .leftJoinAndSelect('game.team2Players', 'team2Players')
       .select([
-        "game.id",
-        "game.timestamp",
-        "game.scoreTeam1",
-        "game.scoreTeam2",
-        "team1Players.id",
-        "team2Players.id",
+        'game.id',
+        'game.timestamp',
+        'game.scoreTeam1',
+        'game.scoreTeam2',
+        'team1Players.id',
+        'team2Players.id',
       ])
       .getMany();
 
@@ -39,16 +39,37 @@ export class GameService {
     }));
   }
 
+  calcPointsBillo(team1Players: Player[], team2Players: Player[], gameData: Partial<Game>): void {
+    const WIN_POINTS_BILLO: number = 10;
+    const LOST_POINTS_BILLO: number = -5;
+    const TIED_POINTS_BILLO: number = 2;
+
+    const hasTeam1Won: boolean = gameData.scoreTeam1 > gameData.scoreTeam2;
+    const hasTeam2Won: boolean = gameData.scoreTeam1 < gameData.scoreTeam2;
+
+    if (hasTeam1Won) {
+      team1Players.forEach(player => player.scores.billo += WIN_POINTS_BILLO);
+      team2Players.forEach(player => player.scores.billo += LOST_POINTS_BILLO);
+    } else if (hasTeam2Won) {
+      team1Players.forEach(player => player.scores.billo += LOST_POINTS_BILLO);
+      team2Players.forEach(player => player.scores.billo += WIN_POINTS_BILLO);
+    } else {
+      [...team1Players, ...team2Players].forEach(player => player.scores.billo += TIED_POINTS_BILLO);
+    }
+  }
+
   async createGame(gameData: Partial<Game>): Promise<Game> {
     const team1Players = await this.playerRepository.findBy({ id: In(gameData.team1Players ?? []) }) ?? [];
     const team2Players = await this.playerRepository.findBy({ id: In(gameData.team2Players ?? []) }) ?? [];
 
     // validation
     if (team1Players.length < 1 || team2Players.length < 1) {
-      throw new BadRequestException("must enter players");
+      throw new BadRequestException('must enter players');
     } else if (this.haveIntersection(team1Players, team2Players)) {
-      throw new BadRequestException("players must be disjunct");
+      throw new BadRequestException('players must be disjunct');
     }
+
+    this.calcPointsBillo(team1Players, team2Players, gameData);
 
     const game = this.gameRepository.create({
       ...gameData,
