@@ -3,6 +3,11 @@ import { Repository } from 'typeorm';
 import { Player } from '../entities/player.entity';
 import { Game } from '../entities/game.entity';
 import { ScoreHistory } from '../entities/score-history.interface';
+import axios, { AxiosResponse } from 'axios';
+import { firstValueFrom } from 'rxjs';
+import { HttpService } from '@nestjs/axios';
+import * as FormData from 'form-data';
+import { HttpException, HttpStatus } from '@nestjs/common';
 
 export class PlayerService {
   constructor(
@@ -10,6 +15,7 @@ export class PlayerService {
     private readonly playerRepository: Repository<Player>,
     @InjectRepository(Player)
     private readonly gameRepository: Repository<Game>,
+    private readonly httpService: HttpService,
   ) {
   }
 
@@ -105,5 +111,37 @@ export class PlayerService {
 
     // Calculate week number
     return Math.ceil(((tempDate.getTime() - startOfYear.getTime()) / 86400000 + 1) / 7);
+  }
+
+  async updateImage(id: number, image: Express.Multer.File): Promise<void> {
+    const formData = new FormData();
+    formData.append('key', process.env.THUMBSNAP_API_KEY); // API key
+    formData.append('media', image.buffer as any, image.originalname);
+
+    // Make the POST request
+    const response: AxiosResponse = await firstValueFrom(
+      this.httpService.post("https://thumbsnap.com/api/upload", formData, {
+        headers: {
+          ...formData.getHeaders(),
+        },
+      }),
+    );
+
+    if (response.data && response.data.success) {
+      const player = await this.playerRepository.findOneBy({ id: id });
+      player.imageUrl = response.data.data.thumb;
+      this.playerRepository.save(player);
+    } else {
+      throw new HttpException(
+        'Image upload failed',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async updateName(id: number, name: string): Promise<void> {
+    const player = await this.playerRepository.findOneBy({ id: id });
+    player.name = name;
+    this.playerRepository.save(player);
   }
 }
