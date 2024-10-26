@@ -11,6 +11,11 @@ export class GameController {
     return this.gameService.findAll();
   }
 
+  @Get("/year-:year/week-:week")
+  async getByWeek(@Param("week") weeknr: number, @Param("year") year: number): Promise<Game[]>{
+    return this.gameService.findByWeek(weeknr, year);
+  }
+
   @Post()
   async addGame(@Body() gameData: Game): Promise<Game> {
     return this.gameService.createGame(gameData);
@@ -25,5 +30,5 @@ export class GameController {
   async deletePlayerById(@Param("id") id: number): Promise<void> {
     await this.gameService.deleteById(id);
   }
-  
+
 }
