@@ -8,7 +8,7 @@ export class GameController {
   constructor(private readonly gameService: GameService) {}
 
   @Get()
-  async getAll(@Query('week') week?: number, @Query("year") year?: number): Promise<Game[] | GameResponse[]> {
+  async getAll(@Query('week') week?: number, @Query("year") year?: number): Promise<GameResponse[]> {
     if(year && week) {
       return this.gameService.findByWeek(week, year);
     }
