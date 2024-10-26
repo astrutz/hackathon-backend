@@ -19,10 +19,9 @@ export class GameService {
   }
 
   async createGame(gameData: Partial<Game>): Promise<Game> {
-    const team1Players = await this.playerRepository.findBy({ id: In(gameData.team1Players) });
-    const team2Players = await this.playerRepository.findBy({ id: In(gameData.team2Players) });
+    const team1Players = await this.playerRepository.findBy({ id: In(gameData.team1Players ?? []) }) ?? [];
+    const team2Players = await this.playerRepository.findBy({ id: In(gameData.team2Players ?? []) }) ?? [];
 
-    console.log("huhu", team1Players, team2Players);
     if (team1Players.length < 1 || team2Players.length < 1) {
       throw new BadRequestException("test");
     }
