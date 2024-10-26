@@ -22,12 +22,12 @@ export class GameController {
     return this.gameService.createGame(gameData);
   }
 
-  @Get(":id")
+  @Get("/id-:id")
   async getPlayerById(@Param("id") id: number): Promise<Game> {
     return this.gameService.findById(id);
   }
 
-  @Delete(":id")
+  @Delete("/id-:id")
   async deletePlayerById(@Param("id") id: number): Promise<void> {
     await this.gameService.deleteById(id);
   }

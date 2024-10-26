@@ -17,12 +17,12 @@ export class PlayerController {
         return this.playerService.createPlayer(playerData);
     }
 
-    @Get(":id")
+    @Get("/id-:id")
     async getPlayerById(@Param("id") id: number): Promise<Player> {
         return this.playerService.findById(id);
     }
 
-    @Delete(":id")
+    @Delete("/id-:id")
     async deletePlayerById(@Param("id") id: number): Promise<void> {
         await this.playerService.deleteById(id);
     }

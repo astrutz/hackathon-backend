@@ -12,7 +12,9 @@ export class PlayerService {
   ) {}
 
   async findAll(): Promise<Player[]> {
-    return this.playerRepository.find();
+    return this.playerRepository.find({
+      relations: ["games"]
+    });
   }
 
   async createPlayer(playerData: Partial<Player>): Promise<Player> {
