@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Query } from '@nestjs/common';
 import { Player } from '../entities/player.entity';
 import { PlayerService } from '../services/player.service';
 import { Game } from '../entities/game.entity';
@@ -8,8 +8,8 @@ export class PlayerController {
     constructor(private readonly playerService: PlayerService) {}
 
     @Get()
-    async getAll(): Promise<Player[]> {
-        return this.playerService.findAll();
+    async getAll(@Query('sort') sort?: string): Promise<any[]> {
+        return this.playerService.findAll(sort);
     }
 
     @Post()
