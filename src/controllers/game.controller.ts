@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Query } from '@nestjs/common';
 import { Game } from '../entities/game.entity';
 import { GameService } from '../services/game.service';
 import { GameResponse } from '../entities/game.response.interface';
@@ -12,9 +12,9 @@ export class GameController {
     return this.gameService.findAll();
   }
 
-  @Get("/year-:year/week-:week")
-  async getByWeek(@Param("week") weeknr: number, @Param("year") year: number): Promise<Game[]>{
-    return this.gameService.findByWeek(weeknr, year);
+  @Get()
+  async getByWeek(@Query('week') week: number, @Query("year") year: number): Promise<Game[]>{
+    return this.gameService.findByWeek(week, year);
   }
 
   @Post()
@@ -22,12 +22,12 @@ export class GameController {
     return this.gameService.createGame(gameData);
   }
 
-  @Get("/id-:id")
+  @Get("/:id")
   async getPlayerById(@Param("id") id: number): Promise<Game> {
     return this.gameService.findById(id);
   }
 
-  @Delete("/id-:id")
+  @Delete("/:id")
   async deletePlayerById(@Param("id") id: number): Promise<void> {
     await this.gameService.deleteById(id);
   }

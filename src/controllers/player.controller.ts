@@ -27,7 +27,7 @@ export class PlayerController {
         return "test"
     }
 
-    @Delete("/:id")
+    @Delete(":id")
     async deletePlayerById(@Param("id") id: number): Promise<void> {
         await this.playerService.deleteById(id);
     }
