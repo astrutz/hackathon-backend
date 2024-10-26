@@ -2,6 +2,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Player } from '../entities/player.entity';
 import { Game } from '../entities/game.entity';
+import { ScoreHistory } from '../entities/score-history.interface';
 
 export class PlayerService {
   constructor(
@@ -51,10 +52,22 @@ export class PlayerService {
     const playerData: Partial<Player> = new Player();
     playerData.name = name;
     playerData.password = hash;
+    playerData.scoreHistory = [this.getCurrentHistoryEntry(playerData)];
 
     const player = this.playerRepository.create(playerData);
     return this.playerRepository.save(player);
   }
+
+  getCurrentHistoryEntry(player: Partial<Player>): ScoreHistory {
+    const now: Date = new Date();
+    return {
+      year: now.getFullYear(),
+      week: this.getWeekNumber(now),
+      elo: player.scores.elo,
+      billo: player.scores.billo,
+    };
+  }
+
 
   async findById(id: number): Promise<Player> {
     return this.playerRepository.findOneBy({ id: id });
@@ -77,4 +90,20 @@ export class PlayerService {
     return this.playerRepository.findOneBy({ name: name });
   }
 
+  private getWeekNumber(date: Date): number {
+    const tempDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const dayNum = (tempDate.getDay() + 6) % 7; // Adjust so that Monday is day 0 and Sunday is day 6
+
+    // Set tempDate to the nearest Thursday to determine the first week of the year
+    tempDate.setDate(tempDate.getDate() - dayNum + 3);
+
+    // Calculate the first Thursday of the year
+    const firstThursday = new Date(tempDate.getFullYear(), 0, 4);
+    const firstWeekStart = firstThursday.getDate() - ((firstThursday.getDay() + 6) % 7) + 3;
+
+    const startOfYear = new Date(tempDate.getFullYear(), 0, firstWeekStart);
+
+    // Calculate week number
+    return Math.ceil(((tempDate.getTime() - startOfYear.getTime()) / 86400000 + 1) / 7);
+  }
 }
