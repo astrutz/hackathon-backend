@@ -131,15 +131,32 @@ export class GameService {
     await this.gameRepository.delete({ id: id });
   }
 
-  async findByWeek(weeknr: number, year: number): Promise<Game[]> {
+  async findByWeek(weeknr: number, year: number): Promise<GameResponse[]> {
     const startDate = this.startOfWeek(year, weeknr, 1);
     const endDate = this.endOfWeek(year, weeknr, 1);
 
-    return this.gameRepository.find({
-      where: {
+    const games = await this.gameRepository
+      .createQueryBuilder('game')
+      .leftJoinAndSelect('game.team1Players', 'team1Players')
+      .leftJoinAndSelect('game.team2Players', 'team2Players')
+      .where({
         timestamp: Between(startDate, endDate),
-      },
-    });
+      })
+      .select([
+        'game.id',
+        'game.timestamp',
+        'game.scoreTeam1',
+        'game.scoreTeam2',
+        'team1Players.id',
+        'team2Players.id',
+      ])
+      .getMany();
+
+    return games.map(game => ({
+      ...game,
+      team1Players: game.team1Players.map(player => player.id),
+      team2Players: game.team2Players.map(player => player.id),
+    }));
   }
 
   private startOfWeek(year: number, weeknr: number, weekStartsOn: number = 1): Date {
