@@ -43,6 +43,20 @@ export class GameService {
     }));
   }
 
+  updateWinLose(team1Players: Player[], team2Players: Player[], gameData: Partial<Game>): void {
+    const hasTeam1Won: boolean = gameData.scoreTeam1 > gameData.scoreTeam2;
+    const hasTeam2Won: boolean = gameData.scoreTeam1 < gameData.scoreTeam2;
+
+    if (hasTeam1Won) {
+      team1Players.forEach(player => player.won++);
+      team2Players.forEach(player => player.lost++);
+    } else if (hasTeam2Won) {
+      team1Players.forEach(player => player.lost++);
+      team2Players.forEach(player => player.won++);
+    }
+  }
+
+
   calculatePointsBillo(team1Players: Player[], team2Players: Player[], gameData: Partial<Game>): void {
     const WIN_POINTS_BILLO: number = 10;
     const LOST_POINTS_BILLO: number = -5;
@@ -144,10 +158,9 @@ export class GameService {
     }
 
     this.calculatePointsBillo(team1Players, team2Players, gameData);
+    this.updateWinLose(team1Players, team2Players, gameData);
 
-    const team1Won = gameData.scoreTeam1 > gameData.scoreTeam2;
     const eloInput = await this.createEloScoreInput(gameData);
-
     const updatedEloScores = this.calculateElo(eloInput);
     updatedEloScores.forEach(({ playerId, newElo }) => {
       const player = [...team1Players, ...team2Players].find(p => p.id === playerId);
