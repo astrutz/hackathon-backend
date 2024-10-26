@@ -8,13 +8,11 @@ export class GameController {
   constructor(private readonly gameService: GameService) {}
 
   @Get()
-  async getAll(): Promise<GameResponse[]> {
+  async getAll(@Query('week') week?: number, @Query("year") year?: number): Promise<GameResponse[]> {
+    if(year && week) {
+      return this.gameService.findByWeek(week, year);
+    }
     return this.gameService.findAll();
-  }
-
-  @Get()
-  async getByWeek(@Query('week') week: number, @Query("year") year: number): Promise<Game[]>{
-    return this.gameService.findByWeek(week, year);
   }
 
   @Post()
