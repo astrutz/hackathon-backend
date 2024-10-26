@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Player } from '../entities/player.entity';
@@ -8,7 +8,8 @@ export class PlayerService {
   constructor(
     @InjectRepository(Player)
     private playerRepository: Repository<Player>,
-  ) {}
+  ) {
+  }
 
   async findAll(): Promise<any[]> {
     try {
@@ -16,21 +17,23 @@ export class PlayerService {
         relations: ['gamesInTeam1', 'gamesInTeam2', 'gamesInTeam1.team1Players', 'gamesInTeam1.team2Players', 'gamesInTeam2.team1Players', 'gamesInTeam2.team2Players'],
       });
 
-      return players.map(player => ({
-        id: player.id,
-        name: player.name,
-        won: player.won,
-        lost: player.lost,
-        scores: player.scores,
-        games: player.games.map(game => ({
-          id: game.id,
-          timestamp: game.timestamp,
-          scoreTeam1: game.scoreTeam1,
-          scoreTeam2: game.scoreTeam2,
-          team1Players: game.team1Players.map(p => p.id), // Only include IDs
-          team2Players: game.team2Players.map(p => p.id), // Only include IDs
-        })),
-      }));
+      return players
+        .sort((a, b) => (a.scores.billo - b.scores.billo))
+        .map(player => ({
+          id: player.id,
+          name: player.name,
+          won: player.won,
+          lost: player.lost,
+          scores: player.scores,
+          games: player.games.map(game => ({
+            id: game.id,
+            timestamp: game.timestamp,
+            scoreTeam1: game.scoreTeam1,
+            scoreTeam2: game.scoreTeam2,
+            team1Players: game.team1Players.map(p => p.id), // Only include IDs
+            team2Players: game.team2Players.map(p => p.id), // Only include IDs
+          })),
+        }));
     } catch (error) {
       console.error('Error fetching players:', error);
       throw error; // Or handle it appropriately
@@ -38,7 +41,24 @@ export class PlayerService {
   }
 
   async createPlayer(playerData: Partial<Player>): Promise<Player> {
-        const player = this.playerRepository.create(playerData);
+    // Validierung 1: Überprüfen, ob Name befüllt ist
+    if (!playerData.name || playerData.name.trim() === '') {
+      throw new BadRequestException('Player name is required');
+    }
+
+    // Validierung 2: Überprüfen, ob der Name bereits in der Datenbank existiert
+    const existingPlayer = await this.playerRepository.findOne({
+      where: { name: playerData.name.trim() }, // Trimme den Namen zur Sicherstellung
+    });
+    if (existingPlayer) {
+      throw new BadRequestException('Player with this name already exists');
+    }
+
+    playerData.scores = { elo: 1000, glicko: 1500, billo: 0 };
+    playerData.won = 0;
+    playerData.lost = 0;
+
+    const player = this.playerRepository.create(playerData);
     return this.playerRepository.save(player);
   }
 
