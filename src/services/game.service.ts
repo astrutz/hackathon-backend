@@ -18,7 +18,8 @@ export class GameService {
     private readonly gameRepository: Repository<Game>,
     @InjectRepository(Player)
     private readonly playerRepository: Repository<Player>,
-  ) {}
+  ) {
+  }
 
   async findAll(): Promise<GameResponse[]> {
     const games = await this.gameRepository

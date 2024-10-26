@@ -8,6 +8,8 @@ import { Game } from './entities/game.entity';
 import { Player } from './entities/player.entity';
 import { PlayerController } from './controllers/player.controller';
 import { GameController } from './controllers/game.controller';
+import { ScheduleModule } from '@nestjs/schedule';
+import { TasksService } from './services/tasks.service';
 import { AuthController } from './controllers/auth.controller';
 import { AuthService } from './services/auth.service';
 import { JwtService } from '@nestjs/jwt';
@@ -17,6 +19,7 @@ import { JwtService } from '@nestjs/jwt';
     ConfigModule.forRoot({
       isGlobal: true, // This makes the config globally accessible
     }),
+    ScheduleModule.forRoot(),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -37,6 +40,7 @@ import { JwtService } from '@nestjs/jwt';
     TypeOrmModule.forFeature([Game, Player]),
   ],
   controllers: [AppController, GameController, PlayerController, AuthController],
-  providers: [GameService, PlayerService, AuthService, JwtService],
+  providers: [GameService, PlayerService, AuthService, JwtService, TasksService],
 })
-export class AppModule {}
+export class AppModule {
+}
