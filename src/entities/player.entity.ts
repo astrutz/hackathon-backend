@@ -37,4 +37,7 @@ export class Player {
 
   @Column('json', { nullable: true })
   scoreHistory: ScoreHistory[];
+
+  @Column({ nullable: true })
+  imageUrl: string;
 }
