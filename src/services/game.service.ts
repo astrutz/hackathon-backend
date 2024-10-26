@@ -6,8 +6,8 @@ import { Player } from '../entities/player.entity';
 import { GameResponse } from '../entities/game.response.interface';
 
 interface EloScoreInput {
-  team1: { playerId: number; elo: number }[];
-  team2: { playerId: number; elo: number }[];
+  team1: { playerId: number; elo: number; gamesPlayed: number }[];
+  team2: { playerId: number; elo: number; gamesPlayed: number }[];
   team1Won: boolean;
 }
 
@@ -61,6 +61,32 @@ export class GameService {
     }
   }
 
+  private async getPlayerGamesCount(players: { playerId: number; elo: number }[]): Promise<{ playerId: number; elo: number; gamesPlayed: number }[]> {
+    return Promise.all(players.map(async player => {
+      const gamesPlayed = await this.gameRepository
+        .createQueryBuilder('game')
+        .leftJoin('game.team1Players', 'team1Players')
+        .leftJoin('game.team2Players', 'team2Players')
+        .where('team1Players.id = :playerId OR team2Players.id = :playerId', { playerId: player.playerId })
+        .getCount();
+
+      return { ...player, gamesPlayed };
+    }));
+  }
+
+  // Methode zur Erstellung des EloScoreInput-Objekts mit Spielanzahl für jeden Spieler
+  async createEloScoreInput(gameData: Partial<Game>): Promise<EloScoreInput> {
+    const team1Players = await this.playerRepository.findBy({ id: In(gameData.team1Players ?? []) });
+    const team2Players = await this.playerRepository.findBy({ id: In(gameData.team2Players ?? []) });
+
+    const team1 = await this.getPlayerGamesCount(team1Players.map(player => ({ playerId: player.id, elo: player.scores.elo })));
+    const team2 = await this.getPlayerGamesCount(team2Players.map(player => ({ playerId: player.id, elo: player.scores.elo })));
+
+    const team1Won = gameData.scoreTeam1 > gameData.scoreTeam2;
+
+    return { team1, team2, team1Won };
+  }
+
   calculateElo(scores: EloScoreInput, kFactor: number = 32): { playerId: number; newElo: number }[] {
     const { team1, team2, team1Won } = scores;
 
@@ -74,11 +100,31 @@ export class GameService {
     const actualScoreTeam2 = 1 - actualScoreTeam1;
 
     const updatedTeam1 = team1.map(player => {
+      // Variablen kFactor basierend auf den Regeln festlegen
+      let kFactor;
+      if (player.elo > 2400) {
+        kFactor = 10;
+      } else if (player.gamesPlayed < 30) {
+        kFactor = 40;
+      } else {
+        kFactor = 20;
+      }
+
       const newElo = player.elo + kFactor * (actualScoreTeam1 - expectedScoreTeam1);
       return { playerId: player.playerId, newElo: Math.round(newElo) };
     });
 
     const updatedTeam2 = team2.map(player => {
+      // Variablen kFactor auch für team2 Spieler berechnen
+      let kFactor;
+      if (player.elo > 2400) {
+        kFactor = 10;
+      } else if (player.gamesPlayed < 30) {
+        kFactor = 40;
+      } else {
+        kFactor = 20;
+      }
+
       const newElo = player.elo + kFactor * (actualScoreTeam2 - expectedScoreTeam2);
       return { playerId: player.playerId, newElo: Math.round(newElo) };
     });
@@ -99,11 +145,7 @@ export class GameService {
     this.calculatePointsBillo(team1Players, team2Players, gameData);
 
     const team1Won = gameData.scoreTeam1 > gameData.scoreTeam2;
-    const eloInput = {
-      team1: team1Players.map(player => ({ playerId: player.id, elo: player.scores.elo })),
-      team2: team2Players.map(player => ({ playerId: player.id, elo: player.scores.elo })),
-      team1Won,
-    };
+    const eloInput = await this.createEloScoreInput(gameData);
 
     const updatedEloScores = this.calculateElo(eloInput);
     updatedEloScores.forEach(({ playerId, newElo }) => {
