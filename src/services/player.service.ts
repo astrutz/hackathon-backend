@@ -11,15 +11,21 @@ export class PlayerService {
   ) {
   }
 
-  async findAll(): Promise<any[]> {
+  async findAll(sortBy?: string): Promise<any[]> {
     try {
       const players = await this.playerRepository.find({
         relations: ['gamesInTeam1', 'gamesInTeam2', 'gamesInTeam1.team1Players', 'gamesInTeam1.team2Players', 'gamesInTeam2.team1Players', 'gamesInTeam2.team2Players'],
       });
 
-      return players
-        .sort((a, b) => (b.scores.billo - a.scores.billo))
-        .map(player => ({
+      // Sortieren basierend auf dem sortBy-Parameter, Standard: Billo-Score
+      const sortedPlayers = players.sort((a, b) => {
+        if (sortBy === 'elo') {
+          return b.scores.elo - a.scores.elo;
+        }
+        return b.scores.billo - a.scores.billo; // Standard: nach Billo-Score
+      });
+
+      return sortedPlayers.map(player => ({
           id: player.id,
           name: player.name,
           won: player.won,
