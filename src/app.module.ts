@@ -17,17 +17,19 @@ import { GameController } from './controllers/game.controller';
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        type: 'postgres',
-        host: configService.get<string>('DB_HOST'),
-        port: configService.get<number>('DB_PORT'),
-        username: configService.get<string>('DB_USERNAME'),
-        password: configService.get<string>('DB_PASSWORD'),
-        database: configService.get<string>('DB_NAME'),
-        entities: [Game, Player],
-        synchronize: true, // Don't use true in production!+
-        ssl: { rejectUnauthorized: false }, // or `ssl: true` for basic SSL
-      }),
+      useFactory: (configService: ConfigService) => {
+        return {
+          type: 'postgres',
+          host: configService.get<string>('DB_HOST'),
+          port: configService.get<number>('DB_PORT'),
+          username: configService.get<string>('DB_USERNAME'),
+          password: configService.get<string>('DB_PASSWORD'),
+          database: configService.get<string>('DB_NAME'),
+          entities: [Game, Player],
+          synchronize: true, // Don't use true in production!+
+          ssl: { rejectUnauthorized: false }, // or `ssl: true` for basic SSL
+        };
+      },
     }),
     TypeOrmModule.forFeature([Game, Player]),
   ],

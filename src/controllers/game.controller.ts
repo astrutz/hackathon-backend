@@ -25,10 +25,5 @@ export class GameController {
   async deletePlayerById(@Param("id") id: number): Promise<void> {
     await this.gameService.deleteById(id);
   }
-
-  @Get("/test")
-  getHello(): string {
-    return "huhu1212";
-  }
-
+  
 }

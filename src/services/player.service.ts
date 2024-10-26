@@ -19,4 +19,12 @@ export class PlayerService {
         const player = this.playerRepository.create(playerData);
     return this.playerRepository.save(player);
   }
+
+  async findById(id: number): Promise<Player> {
+    return this.playerRepository.findOneBy({ id: id });
+  }
+
+  async deleteById(id: number): Promise<void> {
+    await this.playerRepository.delete({ id: id });
+  }
 }
