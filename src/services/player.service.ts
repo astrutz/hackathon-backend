@@ -115,7 +115,7 @@ export class PlayerService {
 
   async updateImage(id: number, image: Express.Multer.File): Promise<void> {
     const formData = new FormData();
-    formData.append('key', 'xxx'); // API key
+    formData.append('key', process.env.THUMBSNAP_API_KEY); // API key
     formData.append('media', image.buffer as any, image.originalname);
 
     // Make the POST request
