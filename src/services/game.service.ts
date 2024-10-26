@@ -22,8 +22,11 @@ export class GameService {
     const team1Players = await this.playerRepository.findBy({ id: In(gameData.team1Players ?? []) }) ?? [];
     const team2Players = await this.playerRepository.findBy({ id: In(gameData.team2Players ?? []) }) ?? [];
 
+    // validation
     if (team1Players.length < 1 || team2Players.length < 1) {
-      throw new BadRequestException("test");
+      throw new BadRequestException("must enter players");
+    } else if (this.haveIntersection(team1Players, team2Players)) {
+      throw new BadRequestException("players must be disjunct");
     }
 
     const game = this.gameRepository.create({
@@ -84,5 +87,9 @@ export class GameService {
     weekEndDate.setDate(weekEndDate.getDate() + 6);
 
     return weekEndDate;
+  }
+
+  private haveIntersection(arr1, arr2) {
+    return arr1.some(element => arr2.includes(element));
   }
 }
