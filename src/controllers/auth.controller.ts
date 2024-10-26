@@ -8,12 +8,12 @@ export class PlayerController {
   constructor(private readonly authService: AuthService) {
   }
 
-  @Post()
+  @Post('/login')
   async login(@Body() loginRequest: LoginRequest): Promise<string> {
     return await this.authService.loginUser(loginRequest);
   }
 
-  @Post()
+  @Post('/register')
   async register(@Body() registerRequest: RegisterRequest): Promise<string> {
     return await this.authService.registerUser(registerRequest);
   }
