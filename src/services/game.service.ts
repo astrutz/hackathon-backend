@@ -9,6 +9,7 @@ interface EloScoreInput {
   team1: { playerId: number; elo: number; gamesPlayed: number }[];
   team2: { playerId: number; elo: number; gamesPlayed: number }[];
   team1Won: boolean;
+  isDraw: boolean;
 }
 
 @Injectable()
@@ -98,12 +99,13 @@ export class GameService {
     const team2 = await this.getPlayerGamesCount(team2Players.map(player => ({ playerId: player.id, elo: player.scores.elo })));
 
     const team1Won = gameData.scoreTeam1 > gameData.scoreTeam2;
+    const isDraw = gameData.scoreTeam1 == gameData.scoreTeam2;
 
-    return { team1, team2, team1Won };
+    return { team1, team2, team1Won, isDraw};
   }
 
   calculateElo(scores: EloScoreInput, kFactor: number = 32): { playerId: number; newElo: number }[] {
-    const { team1, team2, team1Won } = scores;
+    const { team1, team2, team1Won, isDraw } = scores;
 
     const averageEloTeam1 = team1.reduce((sum, player) => sum + player.elo, 0) / team1.length;
     const averageEloTeam2 = team2.reduce((sum, player) => sum + player.elo, 0) / team2.length;
@@ -111,8 +113,8 @@ export class GameService {
     const expectedScoreTeam1 = 1 / (1 + Math.pow(10, (averageEloTeam2 - averageEloTeam1) / 400));
     const expectedScoreTeam2 = 1 - expectedScoreTeam1;
 
-    const actualScoreTeam1 = team1Won ? 1 : 0;
-    const actualScoreTeam2 = 1 - actualScoreTeam1;
+    const actualScoreTeam1 = isDraw ? 0.5 : (team1Won ? 1 : 0);
+    const actualScoreTeam2 = isDraw ? 0.5 : (team1Won ? 0 : 1);
 
     const updatedTeam1 = team1.map(player => {
       // Variablen kFactor basierend auf den Regeln festlegen
@@ -130,7 +132,7 @@ export class GameService {
     });
 
     const updatedTeam2 = team2.map(player => {
-      // Variablen kFactor auch für team2 Spieler berechnen
+      // Variablen kFactor auch für team2 Spieler berechnenplayer
       let kFactor;
       if (player.elo > 2400) {
         kFactor = 10;
