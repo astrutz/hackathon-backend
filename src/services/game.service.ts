@@ -232,9 +232,11 @@ export class GameService {
     const weekStartDate = this.startOfWeek(year, weeknr, weekStartsOn);
     const weekEndDate = new Date(weekStartDate);
     weekEndDate.setDate(weekEndDate.getDate() + 6);
+    weekEndDate.setHours(23, 59, 59, 999);
 
     return weekEndDate;
   }
+
 
   private haveIntersection(arr1: Player[], arr2: Player[]): boolean {
     return arr1.some(player1 => arr2.some(player2 => player1.id === player2.id));
