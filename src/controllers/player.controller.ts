@@ -51,9 +51,9 @@ export class PlayerController {
                   @Body() patchData: { name: string }): Promise<void> {
     const { name } = patchData;
     if (await this.playerService.existPlayerByName(name.trim())) {
-      throw new BadRequestException('Player with this name exists already');
+      throw new BadRequestException('Es existiert bereits ein Spieler mit diesem Namen');
     } else if (!name || name.trim().length === 0) {
-      throw new BadRequestException('Name cannot be empty');
+      throw new BadRequestException('Der Name darf nicht leer sein');
     }
     this.playerService.updateName(id, name);
   }
