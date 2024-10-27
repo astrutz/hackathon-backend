@@ -1,8 +1,7 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { Player } from '../entities/player.entity';
 import { PlayerService } from './player.service';
 import { LoginRequest } from '../entities/login.interface';
-import { NotFoundError } from 'rxjs';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { RegisterRequest } from '../entities/register.interface';
@@ -19,12 +18,12 @@ export class AuthService {
   async loginUser(loginRequest: LoginRequest): Promise<string> {
     return this.playerService.findByName(loginRequest.name).then((player: Player) => {
       if (!player) {
-        throw new NotFoundError('No Player found by name=' + loginRequest.name);
+        throw new NotFoundException('Kein Spieler gefunden mit Namen ' + loginRequest.name);
       }
 
       let validPassword: boolean = bcrypt.compareSync(loginRequest.password, player.password);
       if (!validPassword) {
-        throw new BadRequestException('Password not valid');
+        throw new BadRequestException('Passwort falsch');
       }
 
       return this.jwtService.signAsync({ sub: player.name });
@@ -33,15 +32,15 @@ export class AuthService {
 
   async registerUser(registerRequest: RegisterRequest): Promise<string> {
     if (await this.playerService.existPlayerByName(registerRequest.name.trim())) {
-      throw new BadRequestException('Player with this name exists already');
+      throw new BadRequestException('Es existiert bereits ein Spieler mit diesem Namen');
     }
 
     if (!registerRequest.name || registerRequest.name.trim().length === 0) {
-      throw new BadRequestException('Name cannot be empty');
+      throw new BadRequestException('Der Name darf nicht leer sein');
     }
 
     if (registerRequest.password !== registerRequest.confirmPassword) {
-      throw new BadRequestException('Password and ConfirmPassword are not equal');
+      throw new BadRequestException('Die Passwörter müssen übereinstimmen');
     }
 
     let hash = bcrypt.hashSync(registerRequest.password, 10);
